@@ -1,0 +1,1 @@
+openssl genpkey -algorithm ED25519 > CA.key
