@@ -17,7 +17,6 @@ class client_ssl:
         with socket.socket() as sock:
             with context.wrap_socket(sock, server_side=False) as ssock:
                 ssock.connect(('127.0.0.1', 5678))
-                # print(isinstance(ssock, ssl.SSLSocket))
                 msg = "do i connect with server ?".encode("utf-8")
                 ssock.send(msg)
                 msg = ssock.recv(1024).decode("utf-8")

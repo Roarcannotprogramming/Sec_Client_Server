@@ -17,12 +17,12 @@ class server_ssl:
             with context.wrap_socket(sock, server_side=True) as ssock:
                 ssock.bind(('127.0.0.1', 5678))
                 ssock.listen(5)
-                # print(isinstance(ssock, ssl.SSLSocket))
+                print(type(ssock))
                 while True:
                     client_socket, addr = ssock.accept()
-                    # print(isinstance(client_socket, ssl.SSLSocket))
-                    # cert = client_socket.getpeercert()
-                    # print(cert)
+                    print(type(client_socket))
+                    cert = client_socket.getpeercert()
+                    print(cert)
                     msg = client_socket.recv(1024).decode("utf-8")
                     print(f"receive msg from client {addr}：{msg}")
                     msg = f"yes , you have client_socketect with server.\r\n".encode("utf-8")
