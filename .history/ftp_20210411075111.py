@@ -215,6 +215,7 @@ class FtpProtocol:
 
             if self.request == self.POST_FILE:
                 self.path = self.__recv(self.path_len)
+                # TODO
                 self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path_len)
                 # print(self.content)
                 try:
@@ -232,7 +233,7 @@ class FtpProtocol:
 
     def __os_check_path(self, path):
         p = os.path.normpath(path)
-        # print(type(p))
+        print(type(p))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/..'):
             # print(123123123)
             ProtocalError('Invalid path')

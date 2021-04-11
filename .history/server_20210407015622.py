@@ -22,6 +22,8 @@ class server_ssl:
                     msg = client_socket.recv(1024).decode("utf-8")
                     print(f"receive msg from client {addr}：{msg}")
                     msg = f"yes , you have client_socketect with server.\r\n".encode("utf-8")
+                    client_socket.send(msg)
+                    sleep(10)
                     client_socket.close()
 
 

@@ -27,7 +27,6 @@ class FtpProtocol:
 
     # Max length of single content is 16M
     CONTENT_MAX_LENGTH = 0xfffff0
-    CONTENT_MAX_LENGTH = 0xf0
     HEADER_LEN = 0x10
 
     BASE_PATH = b'/home/v1me/project/Sec_Client_Server'
@@ -57,14 +56,7 @@ class FtpProtocol:
             raise ProtocalError("Path length error")
         self.__send(self.__pack())
 
-        header = self.__recv(self.HEADER_LEN)
-        self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        print(self.package_len)
-        s = self.__recv(self.package_len - self.HEADER_LEN)
-        print(s[:self.path_len], s[self.path_len:])
-
-
-    def get_file(self, path, local_path):
+    def get_file(self, path):
         assert(isinstance(path, bytes))
         self.request = self.GET_FILE
         self.path = path
@@ -74,15 +66,6 @@ class FtpProtocol:
         if self.path_len <= 0 or self.path_len >= 0x10000:
             raise ProtocalError("Path length error")
         self.__send(self.__pack())
-
-        header = self.__recv(self.HEADER_LEN)
-        self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        print(self.package_len)
-        s = self.__recv(self.package_len - self.HEADER_LEN)
-        print(s[:self.path_len], s[self.path_len:])
-        with open(local_path, 'wb+') as f:
-            f.write(s[self.path_len:])
-
 
     def post_file(self, path, file_path = None, file_content = None):
         if (file_path and file_content):
@@ -98,9 +81,8 @@ class FtpProtocol:
         if file_path:
             self.package_len = self.HEADER_LEN + self.path_len + os.path.getsize(file_path)
             self.content = b''
-            print(self.package_len)
             with open(file_path, 'rb') as f:
-                self.__send(self.__pack(check_single=False))
+                self.__send(self.__pack())
                 while True:
                     s = f.read(self.CONTENT_MAX_LENGTH)
                     if not s:
@@ -111,13 +93,6 @@ class FtpProtocol:
             self.package_len = self.HEADER_LEN + self.path_len + len(file_content)
             self.content = file_content
             self.__send(self.__pack())
-
-
-        header = self.__recv(self.HEADER_LEN)
-        self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        print(self.package_len)
-        s = self.__recv(self.package_len - self.HEADER_LEN)
-        print(s[:self.path_len], s[self.path_len:])
 
         
     def get_cwd(self):
@@ -166,7 +141,7 @@ class FtpProtocol:
         while True:
             header = self.__recv(self.HEADER_LEN)
             self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-            print(self.version, self.hb, self.request, self.path_len, self.package_len)
+            print(self.version, self.hb, self.request, self.path_len)
             if self.hb:
                 self.path_len = 0
                 self.package_len = self.HEADER_LEN
@@ -180,10 +155,9 @@ class FtpProtocol:
                 self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path_len)
                 try:
                     p = self.__os_check_path(self.path)
-                    ls = '\n'.join(map(lambda x: x.decode('utf-8'), os.listdir(p)))
-                    self.content = ls.encode()
+                    ls = '\n'.join(os.listdir(p))
+                    self.content = ls
                     return self.__send(self.__pack())
-
                 except Exception:
                     self.content = b'Invalid path'
                     self.request = self.TRANS_ERROR
@@ -192,36 +166,36 @@ class FtpProtocol:
             if self.request == self.GET_FILE:
                 self.path = self.__recv(self.path_len)
                 self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path_len)
-                # print(self.path, self.content)
-                try:
-                    p = self.__os_check_path(self.path)
-                    with open(p, 'rb') as f:
-                        self.path_len = len(self.path)
-                        self.package_len = self.HEADER_LEN + self.path_len + os.path.getsize(p)
-                        # print(self.package_len)
-                        self.__send(self.__pack(False))
-                        while True:
-                            s = f.read(self.CONTENT_MAX_LENGTH)
-                            if not s:
-                                break
-                            self.content = s
-                            self.__send(s)
-                    return 1
-
+                print(self.path, self.content)
+                # try:
+                p = self.__os_check_path(self.path)
+                with open(p, 'rb') as f:
+                    self.path_len = len(self.path)
+                    self.package_len = self.HEADER_LEN + self.path_len + os.path.getsize(p)
+                    print(self.package_len)
+                    self.__send(self.__pack(False))
+                    while True:
+                        s = f.read(self.CONTENT_MAX_LENGTH)
+                        if not s:
+                            break
+                        self.content = s
+                        self.__send(s)
+                return 1
+                '''
                 except Exception:
                     self.content = b'Invalid path'
                     self.request = self.TRANS_ERROR
                     return self.__send(self.__pack())
-
+                '''
             if self.request == self.POST_FILE:
                 self.path = self.__recv(self.path_len)
-                self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path_len)
-                # print(self.content)
+                # TODO
+                self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path)
                 try:
                     p = self.__os_check_path(self.path)
                     with open(p, 'wb+') as f:
                         f.write(self.content)
-                    self.content = b'Done'
+                    self.content = b''
                     return self.__send(self.__pack())
                 except Exception:
                     self.content = b'Invalid path'
@@ -232,9 +206,9 @@ class FtpProtocol:
 
     def __os_check_path(self, path):
         p = os.path.normpath(path)
-        # print(type(p))
+        print(type(p))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/..'):
-            # print(123123123)
+            print(123123123)
             ProtocalError('Invalid path')
         print(self.BASE_PATH, self.root, p)
         p1 = os.path.join(self.BASE_PATH, self.root, p)
@@ -251,8 +225,7 @@ class FtpProtocol:
         package_len = pack[4] + (pack[5] << 8) + (pack[6] << 16) + (pack[7] << 24) + (pack[8] << 32) + (pack[9] << 40) + (pack[10] << 48) + (pack[11] << 56)
         if version != 1:
             raise ProtocalError("Version error")
-        if request not in range(1, 9):
-            print(request)
+        if request not in range(1, 8):
             raise ProtocalError("Request error")
         if path_len < 0:
             raise ProtocalError("Path error")
@@ -279,6 +252,17 @@ class FtpProtocol:
 
     def __send(self, pack):
         self.ssock.send(pack)
+        """
+        print(pack)
+        path_len = pack[2] + (pack[3] << 8)
+        package_len = pack[4] + (pack[5] << 8) + (pack[6] << 16) + (pack[7] << 24) + (pack[8] << 32) + (pack[9] << 40) + (pack[10] << 48) + (pack[11] << 56)
+        request = pack[0] >> 4
+        print("package_len: ", package_len)
+        print("path_len: ", path_len)
+        print("content_len: ", package_len - path_len - self.HEADER_LEN)
+        print("path: ", pack[self.HEADER_LEN: self.HEADER_LEN + path_len])
+        print("content: ", pack[self.HEADER_LEN + path_len:])
+        """
         return 1
     
     def __recv(self, length):
@@ -288,7 +272,6 @@ class FtpProtocol:
             # print(s, length, len(s))
             current_len += len(s)
             self.current_recv = self.current_recv + s
-            # print(1)
             if current_len == length:
                 current_len = 0
                 ss = self.current_recv
@@ -302,7 +285,7 @@ class FtpProtocol:
 
 # FtpProtocol(0).post_file(b'/root/admin/user/pwn', b'CA.key')
 
-port__ = 5673
+port__ = 5672
 
 # client
 def client():
@@ -320,7 +303,13 @@ def client():
         with context.wrap_socket(sock, server_side=False) as ssock:
             ssock.connect(('127.0.0.1', port__))
             ftp = FtpProtocol(ssock)
-            ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
+            ftp.get_file(b'CA.crt')
+            while True:
+                pack = ssock.recv(1024)
+                package_len = pack[4] + (pack[5] << 8) + (pack[6] << 16) + (pack[7] << 24) + (pack[8] << 32) + (pack[9] << 40) + (pack[10] << 48) + (pack[11] << 56)
+                print(package_len)
+                if pack:
+                    print(f"receive msg from server : {pack}")
             ssock.close()
 
 

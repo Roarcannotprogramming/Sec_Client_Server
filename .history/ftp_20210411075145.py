@@ -232,7 +232,7 @@ class FtpProtocol:
 
     def __os_check_path(self, path):
         p = os.path.normpath(path)
-        # print(type(p))
+        print(type(p))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/..'):
             # print(123123123)
             ProtocalError('Invalid path')
