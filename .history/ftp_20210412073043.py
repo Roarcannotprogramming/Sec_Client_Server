@@ -1,4 +1,4 @@
-import socket, ssl, os, sys, re, shutil, select, threading
+import socket, ssl, os, sys, re, shutil, select
 
 """
         00  01  02  03  04  05  06  07  08  09  0a  0b  0c  0d  0e  0f  10  11  12  13  14  15  16  17  18  19  1a  1b  1c  1d  1e  1f 
@@ -47,7 +47,6 @@ class FtpProtocol:
         self.current_recv = b''
         rstr = r"[\/\\\:\*\?\"\<\>\|]".encode()  # '/ \ : * ? " < > |'
         self.name = ssock.getpeercert()['subject'][4][0][1].encode()
-        print(self.ssock)
         for i in rstr:
             if i in self.name:
                 raise ProtocalError("Invalid common name")
@@ -202,7 +201,6 @@ class FtpProtocol:
 
     
     def server_deal(self):
-        print(self.ssock)
         while True:
             header = self.__recv(self.HEADER_LEN)
             self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
@@ -337,7 +335,9 @@ class FtpProtocol:
 
     def __os_check_path(self, path):
         p = os.path.normpath(path)
+        # print(type(p))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
+            # print(123123123)
             ProtocalError('Invalid path')
         print(self.BASE_PATH, self.root, p)
         p1 = os.path.join(self.BASE_PATH, self.root, p)
@@ -403,6 +403,7 @@ class FtpProtocol:
 
 
 
+# FtpProtocol(0).post_file(b'/root/admin/user/pwn', b'CA.key')
 
 port__ = 5671
 
@@ -425,21 +426,8 @@ def client():
             ftp.get_file_list(b'.')
             ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
             ftp.get_file(b'new_new_ca.crt', local_path='geted_file')
-            ftp.get_cwd()
-            ftp.change_cwd(b'abc')
-            ftp.get_cwd()
-            ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
-            ftp.make_dir(b'fff')
-            ftp.del_file(b'new_new_ca.crt')
             # ftp.del_file(b'flag.txt')
             ssock.close()
-
-def server_deal(ftp):
-    try:
-        ftp.server_deal()
-    except Exception:
-        import traceback
-        print(traceback.format_exc())
 
 
 def server():
@@ -461,24 +449,12 @@ def server():
             while True:
                 r_list, _, _ = select.select(inputs, [], [])
                 for event in r_list:
-                    if event == ssock:
-                        client_socket, addr = ssock.accept()
-                        inputs.append(client_socket)
-                    else:
-                        # print(event)
-                        inputs.remove(event)
-                        ftp = FtpProtocol(event, is_server=True)
-                        # print(ftp.ssock)
-                        threading.Thread(target=server_deal, args=(ftp,)).start()
-                        # event.close()
-
-                """
+                    client_socket, addr = ssock.accept()
                 client_socket, addr = ssock.accept()
                 ftp = FtpProtocol(client_socket, is_server=True)
                 ftp.server_deal()
                 # msg = f"yes , you have client_socketect with server.\r\n".encode("utf-8")
                 client_socket.close()
-                """
 
 if __name__ == "__main__":
     if sys.argv[1] == "server":

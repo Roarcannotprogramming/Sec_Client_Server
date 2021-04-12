@@ -428,9 +428,6 @@ def client():
             ftp.get_cwd()
             ftp.change_cwd(b'abc')
             ftp.get_cwd()
-            ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
-            ftp.make_dir(b'fff')
-            ftp.del_file(b'new_new_ca.crt')
             # ftp.del_file(b'flag.txt')
             ssock.close()
 

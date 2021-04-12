@@ -337,7 +337,9 @@ class FtpProtocol:
 
     def __os_check_path(self, path):
         p = os.path.normpath(path)
+        # print(type(p))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
+            # print(123123123)
             ProtocalError('Invalid path')
         print(self.BASE_PATH, self.root, p)
         p1 = os.path.join(self.BASE_PATH, self.root, p)
@@ -403,6 +405,7 @@ class FtpProtocol:
 
 
 
+# FtpProtocol(0).post_file(b'/root/admin/user/pwn', b'CA.key')
 
 port__ = 5671
 
@@ -425,17 +428,12 @@ def client():
             ftp.get_file_list(b'.')
             ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
             ftp.get_file(b'new_new_ca.crt', local_path='geted_file')
-            ftp.get_cwd()
-            ftp.change_cwd(b'abc')
-            ftp.get_cwd()
-            ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
-            ftp.make_dir(b'fff')
-            ftp.del_file(b'new_new_ca.crt')
             # ftp.del_file(b'flag.txt')
             ssock.close()
 
 def server_deal(ftp):
     try:
+        print(ftp.ssock)
         ftp.server_deal()
     except Exception:
         import traceback
@@ -465,12 +463,12 @@ def server():
                         client_socket, addr = ssock.accept()
                         inputs.append(client_socket)
                     else:
-                        # print(event)
+                        print(event)
                         inputs.remove(event)
                         ftp = FtpProtocol(event, is_server=True)
-                        # print(ftp.ssock)
-                        threading.Thread(target=server_deal, args=(ftp,)).start()
-                        # event.close()
+                        print(ftp.ssock)
+                        threading.Thread(target=server_deal, args=((ftp))).start()
+                        event.close()
 
                 """
                 client_socket, addr = ssock.accept()

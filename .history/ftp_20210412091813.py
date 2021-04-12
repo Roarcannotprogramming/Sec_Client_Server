@@ -403,6 +403,7 @@ class FtpProtocol:
 
 
 
+# FtpProtocol(0).post_file(b'/root/admin/user/pwn', b'CA.key')
 
 port__ = 5671
 
@@ -424,13 +425,9 @@ def client():
             ftp = FtpProtocol(ssock, is_server=False)
             ftp.get_file_list(b'.')
             ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
+            # import time
+            # time.sleep(8)
             ftp.get_file(b'new_new_ca.crt', local_path='geted_file')
-            ftp.get_cwd()
-            ftp.change_cwd(b'abc')
-            ftp.get_cwd()
-            ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
-            ftp.make_dir(b'fff')
-            ftp.del_file(b'new_new_ca.crt')
             # ftp.del_file(b'flag.txt')
             ssock.close()
 
