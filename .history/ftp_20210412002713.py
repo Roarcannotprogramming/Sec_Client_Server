@@ -423,7 +423,6 @@ def client():
         with context.wrap_socket(sock, server_side=False) as ssock:
             ssock.connect(('127.0.0.1', port__))
             ftp = FtpProtocol(ssock, is_server=False)
-            ftp.get_file_list(b'.')
             ftp.post_file(b'new_new_ca.crt', file_path=b'CA.crt')
             ftp.get_file(b'new_new_ca.crt', local_path='geted_file')
             # ftp.del_file(b'flag.txt')
