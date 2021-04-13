@@ -473,12 +473,11 @@ def deal_client(ca, key, cert):
                         s = ftp.get_file_list(cmd[1].encode())
                     print(s.decode())
                 if cmd[0] == 'rm':
-                    ftp.del_file(cmd[1].encode())
+                    pass
                 if cmd[0] == 'md':
-                    ftp.make_dir(cmd[1].encode())
-                if cmd[0] == 'exit':
-                    ssock.close()
-                    return
+                    pass
+                if cmd == 'exit':
+                    pass
 
                 
 

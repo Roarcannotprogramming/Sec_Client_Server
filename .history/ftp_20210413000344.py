@@ -1,4 +1,4 @@
-import socket, ssl, os, sys, re, shutil, select, threading, OpenSSL
+import socket, ssl, os, sys, re, shutil, select, threading
 
 """
         00  01  02  03  04  05  06  07  08  09  0a  0b  0c  0d  0e  0f  10  11  12  13  14  15  16  17  18  19  1a  1b  1c  1d  1e  1f 
@@ -47,7 +47,7 @@ class FtpProtocol:
         self.current_recv = b''
         rstr = r"[\/\\\:\*\?\"\<\>\|]".encode()  # '/ \ : * ? " < > |'
         self.name = ssock.getpeercert()['subject'][4][0][1].encode()
-        # print(self.ssock)
+        print(self.ssock)
         for i in rstr:
             if i in self.name:
                 raise ProtocalError("Invalid common name")
@@ -71,10 +71,9 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
 
 
     def get_file(self, path, local_path):
@@ -90,9 +89,9 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
+        print(s[:self.path_len], s[self.path_len:])
         with open(local_path, 'wb+') as f:
             f.write(s[self.path_len:])
 
@@ -111,7 +110,7 @@ class FtpProtocol:
         if file_path:
             self.package_len = self.HEADER_LEN + self.path_len + os.path.getsize(file_path)
             self.content = b''
-            # print(self.package_len)
+            print(self.package_len)
             with open(file_path, 'rb') as f:
                 self.__send(self.__pack(check_single=False))
                 while True:
@@ -128,10 +127,10 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
+
         
     def get_cwd(self):
         self.request = self.GET_CWD
@@ -143,10 +142,9 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
 
 
     def change_cwd(self, path):
@@ -162,10 +160,9 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
 
 
     def make_dir(self, path):
@@ -181,10 +178,10 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
+
 
     def del_file(self, path):
         assert(isinstance(path, bytes))
@@ -199,13 +196,13 @@ class FtpProtocol:
 
         header = self.__recv(self.HEADER_LEN)
         self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
-        # print(self.package_len)
+        print(self.package_len)
         s = self.__recv(self.package_len - self.HEADER_LEN)
-        # print(s[:self.path_len], s[self.path_len:])
-        return s[self.path_len:]
+        print(s[:self.path_len], s[self.path_len:])
+
     
     def server_deal(self):
-        # print(self.ssock)
+        print(self.ssock)
         while True:
             header = self.__recv(self.HEADER_LEN)
             self.version , self.hb, self.request, self.path_len, self.package_len = self.__check_format(header)
@@ -287,7 +284,7 @@ class FtpProtocol:
                 self.path = self.__recv(self.path_len)
                 self.content = self.__recv(self.package_len - self.HEADER_LEN - self.path_len)
                 try:
-                    p = self.__os_check_path_name(self.path)
+                    p = self.__os_check_path(self.path)
                     if os.path.isdir(p):
                         self.content = os.path.relpath(p, self.BASE_PATH)
                         self.root = os.path.relpath(p, self.BASE_PATH)
@@ -341,19 +338,11 @@ class FtpProtocol:
     def __os_check_path(self, path):
         p = os.path.normpath(path)
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
-            raise ProtocalError('Invalid path')
-        # print(self.BASE_PATH, self.root, p)
+            ProtocalError('Invalid path')
+        print(self.BASE_PATH, self.root, p)
         p1 = os.path.join(self.BASE_PATH, self.root, p)
-        # print(p1)
+        print(p1)
         return p1
-
-    def __os_check_path_name(self, path):
-        p = os.path.normpath(path)
-        if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
-            raise ProtocalError('Invalid path')
-        p1 = os.path.join(self.BASE_PATH, self.name, p)
-        return p1
-
 
 
                 
@@ -366,7 +355,7 @@ class FtpProtocol:
         if version != 1:
             raise ProtocalError("Version error")
         if request not in range(1, 9):
-            # print(request)
+            print(request)
             raise ProtocalError("Request error")
         if path_len < 0:
             raise ProtocalError("Path error")
@@ -415,11 +404,11 @@ class FtpProtocol:
 
 
 
-port__ = 5672
+port__ = 5671
 
 # client
 
-cmds = ['help', 'cd', 'get', 'post', 'ls', 'rm', 'md', 'exit']
+cmds = ['help', 'cd', 'get', 'post', 'ls', 'pwd', 'rm', 'md', 'exit']
 
 def usage():
     pass
@@ -431,55 +420,21 @@ def deal_client(ca, key, cert):
     context.load_verify_locations(ca)
     context.verify_mode = ssl.CERT_REQUIRED
 
-    with open(cert, 'rb') as f:
-        cert_text = f.read()
-        cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cert_text)
-        cn = cert.get_subject().get_components()[4][1]
-        issue_cn = cert.get_issuer().get_components()[4][1]
-
-    print('Welcome, %s@%s!' % (cn.decode(), issue_cn.decode()))
-    # cmd = input("connect: (Format IP_ADDR/HOST_NAME PORT, eg 127.0.0.1 23333) ").split()
-    # remote_host = cmd[0]
-    # remote_port = int(cmd[1])
-
-    remote_host = '127.0.0.1'
-    remote_port = port__
+    cmd = input("connect: (Format IP_ADDR/HOST_NAME PORT, eg 127.0.0.1 23333) ").split()
+    remote_host = cmd[0]
+    remote_port = cmd[1]
 
     with socket.socket() as sock:
         with context.wrap_socket(sock, server_side=False) as ssock:
             ssock.connect((remote_host, remote_port))
             ftp = FtpProtocol(ssock, is_server=False)
 
-            cwd = ftp.get_cwd()
             while True:
-                cmd = input("%s@%s:%s$ " % (cn.decode(), issue_cn.decode(), cwd.decode())).split()
+                cmd = input("$").split()
                 if cmd[0] not in cmds:
                     print("Command %s not found" % cmd[0])
                     usage()
                     return
-                if cmd[0] == 'help':
-                    usage()
-                if cmd[0] == 'cd':
-                    print(ftp.change_cwd(cmd[1].encode()).decode())
-                    cwd = ftp.get_cwd()
-                if cmd[0] == 'get':
-                    ftp.get_file(cmd[1].encode(), local_path=cmd[2].encode())
-                if cmd[0] == 'post':
-                    ftp.post_file(cmd[2].encode(), file_path=cmd[1].encode())
-                if cmd[0] == 'ls':
-                    if len(cmd) == 1:
-                        s = ftp.get_file_list(b'.')
-                    else:
-                        s = ftp.get_file_list(cmd[1].encode())
-                    print(s.decode())
-                if cmd[0] == 'rm':
-                    ftp.del_file(cmd[1].encode())
-                if cmd[0] == 'md':
-                    ftp.make_dir(cmd[1].encode())
-                if cmd[0] == 'exit':
-                    ssock.close()
-                    return
-
                 
 
 def client():
@@ -559,4 +514,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "server":
         server()
     if sys.argv[1] == "client":
-        deal_client('CA.crt', 'Client.key', 'Client.crt')
+        client()

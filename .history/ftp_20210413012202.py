@@ -476,7 +476,7 @@ def deal_client(ca, key, cert):
                     ftp.del_file(cmd[1].encode())
                 if cmd[0] == 'md':
                     ftp.make_dir(cmd[1].encode())
-                if cmd[0] == 'exit':
+                if cmd == 'exit':
                     ssock.close()
                     return
 

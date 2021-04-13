@@ -341,7 +341,7 @@ class FtpProtocol:
     def __os_check_path(self, path):
         p = os.path.normpath(path)
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
-            raise ProtocalError('Invalid path')
+            ProtocalError('Invalid path')
         # print(self.BASE_PATH, self.root, p)
         p1 = os.path.join(self.BASE_PATH, self.root, p)
         # print(p1)
@@ -349,8 +349,9 @@ class FtpProtocol:
 
     def __os_check_path_name(self, path):
         p = os.path.normpath(path)
+        print(p.decode('utf-8'))
         if p.decode('utf-8').startswith('..') or p.decode('utf-8').startswith('/'):
-            raise ProtocalError('Invalid path')
+            ProtocalError('Invalid path')
         p1 = os.path.join(self.BASE_PATH, self.name, p)
         return p1
 
@@ -473,12 +474,11 @@ def deal_client(ca, key, cert):
                         s = ftp.get_file_list(cmd[1].encode())
                     print(s.decode())
                 if cmd[0] == 'rm':
-                    ftp.del_file(cmd[1].encode())
+                    pass
                 if cmd[0] == 'md':
-                    ftp.make_dir(cmd[1].encode())
-                if cmd[0] == 'exit':
-                    ssock.close()
-                    return
+                    pass
+                if cmd == 'exit':
+                    pass
 
                 
 
